@@ -6,7 +6,7 @@ from rest_framework_swagger.urlparser import UrlParser
 from rest_framework_swagger.apidocview import APIDocView
 from rest_framework_swagger.docgenerator import DocumentationGenerator
 
-from rest_framework_swagger import SWAGGER_SETTINGS
+from rest_framework_swagger.settings import SWAGGER_SETTINGS
 
 
 class SwaggerUIView(View):
