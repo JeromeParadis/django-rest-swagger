@@ -29,13 +29,12 @@ class DocumentationGenerator(object):
         """
         operations = []
         callback = api['callback']
-
         allowed_methods = callback().allowed_methods
 
         for method in allowed_methods:
             if method == "OPTIONS":
                 continue  # No one cares. I assume JSON.
-
+    
             operation = {
                 'httpMethod': method,
                 'summary': self.__get_method_docs__(callback, method),
@@ -70,7 +69,15 @@ class DocumentationGenerator(object):
         endpoint. If none are available, the class docstring
         will be used
         """
-        docs = eval("callback.%s.__doc__" % (str(method).lower()))
+        try:
+            docs = eval("callback.%s.__doc__" % (str(method).lower()))
+        except:
+            if str(method).lower() == 'get':
+                docs = eval("callback.list.__doc__")
+            elif str(method).lower() == 'post':
+                docs = eval("callback.create.__doc__")
+            else:
+                docs = None
 
         if docs is None:
             docs = self.__get_description__(callback)
@@ -93,8 +100,15 @@ class DocumentationGenerator(object):
 
         if method is not None:
             class_docs = self.__get_notes__(callback)
-            method_docs = eval("callback.%s.__doc__" % (str(method).lower()))
-
+            try:
+                method_docs = eval("callback.%s.__doc__" % (str(method).lower()))
+            except:
+                if str(method).lower() == 'get':
+                    method_docs = eval("callback.list.__doc__")
+                elif str(method).lower() == 'post':
+                    method_docs = eval("callback.create.__doc__")
+                else:
+                    method_docs = None
             if class_docs is not None:
                 docstring += class_docs
             if method_docs is not None:
@@ -244,12 +258,21 @@ class DocumentationGenerator(object):
         params = []
         # Combine class & method level comments. If parameters are specified
         if method is not None:
-            docstring = trim_docstring(eval("callback.%s.__doc__" % (str(method).lower())))
+            try:
+                docstring = trim_docstring(eval("callback.%s.__doc__" % (str(method).lower())))
+            except:
+                if str(method).lower() == 'get':
+                    docstring = eval("callback.list.__doc__")
+                elif str(method).lower() == 'post':
+                    docstring = eval("callback.create.__doc__")
+                else:
+                    docstring = get_view_description(callback)
+
             params += self.__build_query_params_from_docstring__(callback)
         else: # Otherwise, get the class level docstring
             docstring = get_view_description(callback)
 
-        split_lines = docstring.split('\n')
+        split_lines = docstring.split('\n') if docstring else []
 
         for line in split_lines:
             param = line.split(' -- ')
